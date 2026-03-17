@@ -7,3 +7,6 @@ xgboost
 shap
 joblib
 gunicorn
+matplotlib
+reportlab
+requests
