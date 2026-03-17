@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodLens — Weekly Check-in</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:   #1A237E;
+    --blue:   #1565C0;
+    --lblue:  #E3F2FD;
+    --green:  #1B5E20;
+    --lgreen: #E8F5E9;
+    --orange: #E65100;
+    --grey:   #37474F;
+    --lgrey:  #F5F5F5;
+    --red:    #C62828;
+    --white:  #FFFFFF;
+    --ink:    #1A1A2E;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F0F4FF;
+    min-height: 100vh;
+    color: var(--ink);
+  }
+
+  /* ── Background mesh ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 10%, #C5CAE9 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 90%, #BBDEFB 0%, transparent 60%),
+      #F0F4FF;
+    pointer-events: none;
+  }
+
+  /* ── Layout ── */
+  .page { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  /* ── Header ── */
+  header { text-align: center; margin-bottom: 40px; }
+  .brand { font-family: 'DM Serif Display', serif; font-size: 2.6rem; color: var(--navy); letter-spacing: -1px; }
+  .brand em { font-style: italic; color: var(--blue); }
+  .tagline { font-size: 0.88rem; color: var(--grey); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
+
+  /* ── Progress tracker ── */
+  .progress-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 20px rgba(26,35,126,0.08);
+    display: flex; align-items: center; gap: 20px;
+  }
+  .progress-label { font-size: 0.78rem; color: var(--grey); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .weeks-row { display: flex; gap: 10px; }
+  .week-dot {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+  .week-dot.empty  { background: var(--lgrey); color: #aaa; border-color: #ddd; }
+  .week-dot.saved  { background: var(--lgreen); color: var(--green); border-color: var(--green); }
+  .week-dot.active { background: var(--navy); color: white; box-shadow: 0 4px 12px rgba(26,35,126,0.35); }
+  .progress-info { flex: 1; }
+  .progress-status { font-size: 1rem; font-weight: 600; color: var(--navy); }
+  .progress-sub   { font-size: 0.82rem; color: var(--grey); margin-top: 2px; }
+
+  /* ── Reset button ── */
+  .btn-reset {
+    background: none; border: 1px solid #ddd; border-radius: 8px;
+    padding: 6px 12px; font-size: 0.78rem; color: var(--grey);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Card ── */
+  .card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 2px 20px rgba(26,35,126,0.08);
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem; color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .card-sub { font-size: 0.85rem; color: var(--grey); margin-bottom: 28px; }
+
+  /* ── Section dividers ── */
+  .section-label {
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--blue);
+    margin: 28px 0 14px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--lblue);
+  }
+
+  /* ── Question rows ── */
+  .q-row {
+    display: flex; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #F5F7FF;
+    gap: 12px;
+  }
+  .q-row:last-of-type { border-bottom: none; }
+  .q-text { flex: 1; font-size: 0.9rem; color: var(--grey); }
+  .q-num  { font-size: 0.75rem; color: #aaa; min-width: 20px; }
+
+  .q-row input[type="range"] {
+    -webkit-appearance: none;
+    width: 120px; height: 4px;
+    background: var(--lblue); border-radius: 2px; outline: none;
+    cursor: pointer;
+  }
+  .q-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--navy); border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(26,35,126,0.3);
+    cursor: pointer;
+  }
+  .val-badge {
+    min-width: 28px; height: 28px; border-radius: 8px;
+    background: var(--lblue); color: var(--navy);
+    font-size: 0.82rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Submit button ── */
+  .btn-submit {
+    width: 100%; padding: 16px;
+    background: var(--navy); color: white;
+    border: none; border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    cursor: pointer; margin-top: 28px;
+    transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(26,35,126,0.3);
+    position: relative; overflow: hidden;
+  }
+  .btn-submit:hover { background: var(--blue); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,35,126,0.4); }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-submit:disabled { background: #aaa; box-shadow: none; cursor: not-allowed; transform: none; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--navy); color: white;
+    padding: 14px 28px; border-radius: 50px;
+    font-size: 0.88rem; font-weight: 500;
+    box-shadow: 0 8px 32px rgba(26,35,126,0.3);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 100; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--green); }
+  .toast.error   { background: var(--red); }
+
+  /* ── Report panel ── */
+  .report-panel {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    border-radius: 20px; padding: 32px;
+    color: white; text-align: center;
+    box-shadow: 0 8px 32px rgba(26,35,126,0.35);
+    display: none;
+  }
+  .report-panel.visible { display: block; }
+  .report-icon { font-size: 3rem; margin-bottom: 12px; }
+  .report-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; margin-bottom: 8px; }
+  .report-sub { font-size: 0.88rem; opacity: 0.8; margin-bottom: 24px; }
+  .btn-download {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: white; color: var(--navy);
+    border: none; border-radius: 12px;
+    padding: 14px 28px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+  .btn-download:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.2); }
+  .spinner {
+    display: inline-block; width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white; border-radius: 50%;
+    animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">Mood<em>Lens</em></div>
+    <div class="tagline">4-Week Mood Stability Assessment</div>
+  </header>
+
+  <!-- Progress tracker -->
+  <div class="progress-card">
+    <div class="progress-info">
+      <div class="progress-label">Progress</div>
+      <div class="weeks-row" id="weekDots"></div>
+      <div class="progress-status" id="progressStatus" style="margin-top:10px"></div>
+      <div class="progress-sub"   id="progressSub"></div>
+    </div>
+    <button class="btn-reset" onclick="resetAll()">Reset</button>
+  </div>
+
+  <!-- Report panel (shown on week 4 completion) -->
+  <div class="report-panel" id="reportPanel">
+    <div class="report-icon">📊</div>
+    <div class="report-title">4-Week Report Ready</div>
+    <div class="report-sub" id="reportSub">Your longitudinal mood analysis has been generated.</div>
+    <button class="btn-download" id="downloadBtn" onclick="downloadReport()">
+      ⬇ Download Report PDF
+    </button>
+    <div style="margin-top:16px">
+      <button class="btn-reset" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.3)" onclick="startNewCycle()">Start New 4-Week Cycle</button>
+    </div>
+  </div>
+
+  <!-- Check-in form -->
+  <div class="card" id="formCard">
+    <div class="card-title" id="formTitle">Week 1 Check-in</div>
+    <div class="card-sub">Rate each feeling from 1 (Not at all) to 5 (Extremely)</div>
+
+    <!-- PANAS PA -->
+    <div class="section-label">Positive Feelings</div>
+    <div id="pa-questions"></div>
+
+    <!-- PANAS NA -->
+    <div class="section-label">Negative Feelings</div>
+    <div id="na-questions"></div>
+
+    <!-- Context -->
+    <div class="section-label">Lifestyle & Context</div>
+    <div id="ctx-questions"></div>
+
+    <button class="btn-submit" id="submitBtn" onclick="submitWeek()">
+      Save Week <span id="submitWeekNum">1</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Question definitions ─────────────────────────────────────
+const PA_QUESTIONS = [
+  { id: 'Q1_Interested',   label: 'Interested'   },
+  { id: 'Q3_Excited',      label: 'Excited'      },
+  { id: 'Q5_Strong',       label: 'Strong'       },
+  { id: 'Q9_Enthusiastic', label: 'Enthusiastic' },
+  { id: 'Q10_Proud',       label: 'Proud'        },
+  { id: 'Q12_Alert',       label: 'Alert'        },
+  { id: 'Q14_Inspired',    label: 'Inspired'     },
+  { id: 'Q16_Determined',  label: 'Determined'   },
+  { id: 'Q17_Attentive',   label: 'Attentive'    },
+  { id: 'Q19_Active',      label: 'Active'       },
+];
+const NA_QUESTIONS = [
+  { id: 'Q2_Distressed',  label: 'Distressed'  },
+  { id: 'Q4_Upset',       label: 'Upset'       },
+  { id: 'Q6_Guilty',      label: 'Guilty'      },
+  { id: 'Q7_Scared',      label: 'Scared'      },
+  { id: 'Q8_Hostile',     label: 'Hostile'     },
+  { id: 'Q11_Irritable',  label: 'Irritable'   },
+  { id: 'Q13_Ashamed',    label: 'Ashamed'     },
+  { id: 'Q15_Nervous',    label: 'Nervous'     },
+  { id: 'Q18_Jittery',    label: 'Jittery'     },
+  { id: 'Q20_Afraid',     label: 'Afraid'      },
+];
+const CTX_QUESTIONS = [
+  { id: 'Q21_Emotional_Clarity',  label: 'Emotional Clarity'  },
+  { id: 'Q22_Physical_Awareness', label: 'Physical Awareness' },
+  { id: 'Q23_Misunderstood',      label: 'Feeling Misunderstood' },
+  { id: 'Q24_Rumination',         label: 'Rumination'         },
+  { id: 'Q25_Safety',             label: 'Psychological Safety' },
+  { id: 'Sleep_Quality',          label: 'Sleep Quality'      },
+  { id: 'Daily_Stress',           label: 'Daily Stress'       },
+  { id: 'Social_Connection',      label: 'Social Connection'  },
+  { id: 'Focus_Ability',          label: 'Focus Ability'      },
+  { id: 'Physical_Fatigue',       label: 'Physical Fatigue'   },
+];
+
+const ALL_QUESTIONS = [...PA_QUESTIONS, ...NA_QUESTIONS, ...CTX_QUESTIONS];
+const API_BASE  = 'http://127.0.0.1:5000';
+const API_KEY   = 'mood_flow_model_key';
+const STORE_KEY = 'moodlens_weeks';
+
+// ── State ─────────────────────────────────────────────────────
+function getSavedWeeks() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+  catch { return []; }
+}
+function saveWeeks(weeks) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(weeks));
+}
+
+// ── Render questions ──────────────────────────────────────────
+function renderQuestions() {
+  [['pa-questions', PA_QUESTIONS], ['na-questions', NA_QUESTIONS], ['ctx-questions', CTX_QUESTIONS]]
+    .forEach(([containerId, questions]) => {
+      const el = document.getElementById(containerId);
+      el.innerHTML = '';
+      questions.forEach((q, i) => {
+        const row = document.createElement('div');
+        row.className = 'q-row';
+        row.innerHTML = `
+          <span class="q-num">${i + 1}</span>
+          <span class="q-text">${q.label}</span>
+          <input type="range" min="1" max="5" value="3"
+                 id="inp_${q.id}"
+                 oninput="document.getElementById('val_${q.id}').textContent=this.value">
+          <div class="val-badge" id="val_${q.id}">3</div>
+        `;
+        el.appendChild(row);
+      });
+    });
+}
+
+// ── UI state update ───────────────────────────────────────────
+function updateUI() {
+  const saved      = getSavedWeeks();
+  const currentWeek = saved.length + 1;
+  const dotsEl     = document.getElementById('weekDots');
+  const statusEl   = document.getElementById('progressStatus');
+  const subEl      = document.getElementById('progressSub');
+  const formCard   = document.getElementById('formCard');
+  const reportPanel= document.getElementById('reportPanel');
+
+  // Dots
+  dotsEl.innerHTML = '';
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'week-dot ' + (i < currentWeek ? 'saved' : i === currentWeek ? 'active' : 'empty');
+    dot.textContent = i < currentWeek ? '✓' : `W${i}`;
+    dotsEl.appendChild(dot);
+  }
+
+  if (saved.length < 4) {
+    // Show form
+    formCard.style.display   = 'block';
+    reportPanel.classList.remove('visible');
+    document.getElementById('formTitle').textContent   = `Week ${currentWeek} Check-in`;
+    document.getElementById('submitWeekNum').textContent = currentWeek;
+    statusEl.textContent = `Week ${currentWeek} of 4`;
+    subEl.textContent = saved.length === 0
+      ? 'Complete all 4 weeks to generate your report.'
+      : `${4 - saved.length} week${4 - saved.length > 1 ? 's' : ''} remaining.`;
+  } else {
+    // All 4 done — show report panel, hide form
+    formCard.style.display = 'none';
+    reportPanel.classList.add('visible');
+    statusEl.textContent = 'All 4 weeks complete!';
+    subEl.textContent    = 'Your longitudinal report is ready to generate.';
+  }
+}
+
+// ── Collect answers from form ─────────────────────────────────
+function collectAnswers() {
+  const answers = {};
+  ALL_QUESTIONS.forEach(q => {
+    answers[q.id] = parseInt(document.getElementById(`inp_${q.id}`).value);
+  });
+  return answers;
+}
+
+// ── Submit one week ───────────────────────────────────────────
+async function submitWeek() {
+  const saved       = getSavedWeeks();
+  const weekNumber  = saved.length + 1;
+  const answers     = collectAnswers();
+  const userId      = 'moodlens_user';
+
+  const weekPayload = {
+    userId: userId,
+    date:   new Date().toISOString(),
+    answers: answers
+  };
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled    = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    // Validate against the API with /predict_all first
+    const res = await fetch(`${API_BASE}/predict_all`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+      body:    JSON.stringify([weekPayload])
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || `API error ${res.status}`);
+    }
+
+    const result = await res.json();
+    const xgbBLabel = result.predictions?.XGBoost_ModelB?.label || '—';
+
+    // Save to localStorage
+    saved.push(weekPayload);
+    saveWeeks(saved);
+
+    showToast(`Week ${weekNumber} saved — XGBoost B: ${xgbBLabel}`, 'success');
+
+    // Reset sliders
+    ALL_QUESTIONS.forEach(q => {
+      const el = document.getElementById(`inp_${q.id}`);
+      if (el) { el.value = 3; document.getElementById(`val_${q.id}`).textContent = '3'; }
+    });
+
+    updateUI();
+
+    // Auto-trigger report on week 4
+    if (saved.length === 4) {
+      setTimeout(() => generateAndDownloadReport(saved), 800);
+    }
+
+  } catch (e) {
+    showToast(`Error: ${e.message}`, 'error');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = `Save Week ${weekNumber}`;
+  }
+}
+
+// ── Generate + download report ────────────────────────────────
+async function generateAndDownloadReport(weeksData) {
+  const btn    = document.getElementById('downloadBtn');
+  const subEl  = document.getElementById('reportSub');
+  const panel  = document.getElementById('reportPanel');
+
+  panel.classList.add('visible');
+  subEl.innerHTML = `<span class="spinner"></span> Generating your 4-week report…`;
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/predict_report_weekly`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+      body:    JSON.stringify({ weeks: weeksData })
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Report generation failed (${res.status}): ${text}`);
+    }
+
+    const blob     = await res.blob();
+    const url      = URL.createObjectURL(blob);
+    const a        = document.createElement('a');
+    const today    = new Date().toISOString().slice(0, 10);
+    a.href         = url;
+    a.download     = `moodlens_report_${today}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    subEl.textContent = 'Report downloaded! Your 4-week analysis is complete.';
+    showToast('Report downloaded!', 'success');
+
+  } catch (e) {
+    subEl.textContent = `Failed to generate report: ${e.message}`;
+    showToast(`Report error: ${e.message}`, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ── Download button (manual re-trigger) ──────────────────────
+async function downloadReport() {
+  const saved = getSavedWeeks();
+  if (saved.length < 4) { showToast('Complete all 4 weeks first.', 'error'); return; }
+  await generateAndDownloadReport(saved);
+}
+
+// ── Reset ─────────────────────────────────────────────────────
+function resetAll() {
+  if (!confirm('Clear all saved weeks and start over?')) return;
+  localStorage.removeItem(STORE_KEY);
+  ALL_QUESTIONS.forEach(q => {
+    const el = document.getElementById(`inp_${q.id}`);
+    if (el) { el.value = 3; document.getElementById(`val_${q.id}`).textContent = '3'; }
+  });
+  updateUI();
+  showToast('All weeks cleared.', '');
+}
+
+function startNewCycle() {
+  if (!confirm('Start a new 4-week cycle? This will clear saved data.')) return;
+  localStorage.removeItem(STORE_KEY);
+  updateUI();
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent  = msg;
+  t.className    = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+renderQuestions();
+updateUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+[
+    {
+        "userId": "mzaidsa@gmail.com",
+        "date": "2026-03-06T09:18:48.174Z",
+        "answers": {
+            "Q1_Interested": 5,
+            "Q2_Distressed": 4,
+            "Q3_Excited": 5,
+            "Q4_Upset": 1,
+            "Q5_Strong": 5,
+            "Q6_Guilty": 2,
+            "Q7_Scared": 1,
+            "Q8_Hostile": 2,
+            "Q9_Enthusiastic": 4,
+            "Q10_Proud": 4,
+            "Q11_Irritable": 2,
+            "Q12_Alert": 5,
+            "Q13_Ashamed": 1,
+            "Q14_Inspired": 4,
+            "Q15_Nervous": 1,
+            "Q16_Determined": 5,
+            "Q17_Attentive": 5,
+            "Q18_Jittery": 2,
+            "Q19_Active": 5,
+            "Q20_Afraid": 1,
+            "Q21_Emotional_Clarity": 4,
+            "Q22_Physical_Awareness": 2,
+            "Q23_Misunderstood": 4,
+            "Q24_Rumination": 1,
+            "Q25_Safety": 4,
+            "Sleep_Quality": 1,
+            "Daily_Stress": 3,
+            "Social_Connection": 4,
+            "Focus_Ability": 5,
+            "Physical_Fatigue": 4
+    },
+        "metrices": {
+            "totalScore": 96,
+            "averageScore": 3.2,
+            "emotionalState": "Fair",
+            "stressLevel": "Moderate",
+            "energyLevel": "Fair",
+            "wellbeing": "Fair"
+        },
+        "duration": 14
+    }
+]

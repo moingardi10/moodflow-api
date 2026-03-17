@@ -1,0 +1,47 @@
+[
+    {
+        "userId": "moingardi10@gmail.com",
+        "date": "2026-03-07T05:30:20.686Z",
+        "answers": {
+            "Q1_Interested": 4,
+            "Q2_Distressed": 3,
+            "Q3_Excited": 5,
+            "Q4_Upset": 2,
+            "Q5_Strong": 5,
+            "Q6_Guilty": 4,
+            "Q7_Scared": 1,
+            "Q8_Hostile": 3,
+            "Q9_Enthusiastic": 2,
+            "Q10_Proud": 5,
+            "Q11_Irritable": 4,
+            "Q12_Alert": 5,
+            "Q13_Ashamed": 4,
+            "Q14_Inspired": 5,
+            "Q15_Nervous": 2,
+            "Q16_Determined": 5,
+            "Q17_Attentive": 4,
+            "Q18_Jittery": 5,
+            "Q19_Active": 3,
+            "Q20_Afraid": 2,
+            "Q21_Emotional_Clarity": 2,
+            "Q22_Physical_Awareness": 3,
+            "Q23_Misunderstood": 4,
+            "Q24_Rumination": 5,
+            "Q25_Safety": 3,
+            "Q26_Sleep_Quality": 2,
+            "Q27_Daily_Stress": 2,
+            "Q28_Social_Connection": 3,
+            "Q29_Focus_Ability": 4,
+            "Q30_Physical_Fatigue": 5
+        },
+        "metrices": {
+            "totalScore": 106,
+            "averageScore": 3.5,
+            "emotionalState": "Good",
+            "stressLevel": "Moderate",
+            "energyLevel": "Good",
+            "wellbeing": "Good"
+        },
+        "duration": 3
+    }
+]
