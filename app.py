@@ -52,7 +52,28 @@ pipeline.compute_shap = _real_compute_shap
 
 VALID_API_KEY = "mood_flow_model_key"
 app = Flask(__name__)
-CORS(app)
+CORS(app,
+     resources={r"/*": {"origins": "*"}},
+     allow_headers=["Content-Type", "x-api-key"],
+     methods=["GET", "POST", "OPTIONS"],
+     supports_credentials=False)
+
+# ════════════════════════════════════════════════════════════
+# CORS HEADERS — ensure every response has them
+# ════════════════════════════════════════════════════════════
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"]  = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, x-api-key"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+@app.route("/predict_all", methods=["OPTIONS"])
+@app.route("/predict_report_weekly", methods=["OPTIONS"])
+@app.route("/predict_report_json", methods=["OPTIONS"])
+def handle_options():
+    return "", 200
 
 # ════════════════════════════════════════════════════════════
 # LOAD MODELS
@@ -246,4 +267,6 @@ def predict_report_weekly():
 # ════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)  
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host="0.0.0.0", port=port)
