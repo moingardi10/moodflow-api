@@ -44,7 +44,7 @@ def _real_compute_shap(xgb_model, x_scaled: np.ndarray) -> dict:
     return {feat: round(float(importance[i]), 6)
             for i, feat in enumerate(pipeline.MODEL_FEATURES)}
 
-pipeline.compute_shap = _real_compute_shap
+# pipeline.compute_shap = _real_compute_shap
 
 # ════════════════════════════════════════════════════════════
 # APP SETUP
