@@ -44,7 +44,7 @@ def _real_compute_shap(xgb_model, x_scaled: np.ndarray) -> dict:
     return {feat: round(float(importance[i]), 6)
             for i, feat in enumerate(pipeline.MODEL_FEATURES)}
 
-# pipeline.compute_shap = _real_compute_shap
+pipeline.compute_shap = _real_compute_shap
 
 # ════════════════════════════════════════════════════════════
 # APP SETUP
@@ -53,7 +53,10 @@ def _real_compute_shap(xgb_model, x_scaled: np.ndarray) -> dict:
 VALID_API_KEY = "mood_flow_model_key"
 app = Flask(__name__)
 CORS(app,
-     resources={r"/*": {"origins": "*"}},
+     origins=["https://mood-analysis-project.vercel.app",
+               "capacitor://localhost",
+               "https://localhost",
+               "http://localhost"],
      allow_headers=["Content-Type", "x-api-key"],
      methods=["GET", "POST", "OPTIONS"],
      supports_credentials=False)
